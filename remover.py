@@ -3,7 +3,7 @@ from tkinter import *
 from tkinter.filedialog import *
 import PyPDF2 as pypdf
 import sys, os
-
+import tkinter.font as font
 
 
 def resource_path(relative_path):
@@ -55,15 +55,27 @@ def remove_images():
     root.quit()
 
 ##Label(root, text="Rectangles remover").grid(row=0, column=2, sticky=E)
-Button(root, text="Choose file", command=load1).grid(row=1, column=0)
+button1=Button(root, text="Choose file", command=load1, height = 5, width = 14).grid(row=1, column=0)
 Label(root, textvariable=filename1,width=20).grid(row=1, column=1, sticky=(N,S,E,W))
 #photo= PhotoImage(file=resource_path('./button_pic.png'))
 
 #Button(root, text="Remove answers",image=photo, command=remove_images, width=100, height=120).grid(row=1, column=2,sticky=E)
-Button(root, text="Remove answers", command=remove_images).grid(row=1, column=2,sticky=E)
+button2=Button(root, text="Remove answers", command=remove_images,font='Helvetica 12 bold', fg="red", height =4).grid(row=1, column=2,sticky=E)
 
 #Label(root, text="Remove Answers^^").grid(row=2, column=2, sticky=E)
-Label(root, text="Good Luck!").grid(row=2, column=0, sticky=W)
+#Label(root, text="Good Luck!").grid(row=2, column=0, sticky=W)
+
+Label(root, text='''שימו לב,\n
+האפליקציה מסירה שכבה מסויימת של אובייקטים מהדף,\n
+ולכן תסיר גם תמונות או שרטוטים מסויימים, אם קיימים.\n
+הדף לא נפתח כראוי בתוכנות מסויימות של אדובי,\n
+הפתרון הפשוט לכך הוא לחצן ימני על הקובץ שנוצר,\n
+לחצן ימני > פתח באמצעות > כרום, פיירפוקס, או כל תוכנה אחרת שיודעת להציג פדף.\n
+\n
+וזיכרו: הפתרון הטוב ביותר יהיה לשלוח מייל חביב למתרגל האחראי לאחר המבחן\nולבקש ממנו להעלות גם גרסה ללא הפתרונות למען הסמסטרים הבאים.\n
+\n
+בהצלחה!\n''', font='Helvetica 7', justify=RIGHT).grid(row=3, columnspan=3, sticky=E)
+
 
 for child in root.winfo_children():
     child.grid_configure(padx=10,pady=10)
