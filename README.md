@@ -1,6 +1,9 @@
 # PDF_Answers__Hider
 When your PDF past exams has the answers marked and highlighted - this tool removes it
 
+What is this app do?
+See example https://github.com/omer-re/PDF_Answers__Hider/blob/master/what%20I%20do.jpg
+
 Instructions:
 1. download the .py file and run it on your python interperter OR just download the EXE file which made of the same script.
 if your windows warn you about it, click "more info" and then allow it to run.
