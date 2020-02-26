@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from tkinter import *
 from tkinter.filedialog import *
