@@ -5,11 +5,12 @@ from PyPDF2.pdf import ContentStream
 from PyPDF2.generic import NumberObject, TextStringObject, NameObject
 from PyPDF2.utils import b_
 
-from tkinter import *
-from tkinter.filedialog import *
-import PyPDF2 as pypdf
+from tkinter import Tk, Label, Button, StringVar
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.constants import N,S,W,E, LEFT, TOP, RIGHT, BOTTOM
 import sys, os
 import tkinter.font as font
+
 
 
 def resource_path(relative_path):
@@ -32,15 +33,15 @@ class PdfEnhancedFileWriter(PdfFileWriter):
         """
         pages = self.getObject(self._pages)['/Kids']
         for j in range(len(pages)):
-            page = pages[j]
+            page    = pages[j]
             pageRef = self.getObject(page)
             content = pageRef['/Contents'].getObject()
 
             if not isinstance(content, ContentStream):
                 content = ContentStream(content, pageRef)
 
-            _operations = []
-            seq_graphics = False
+            _operations    = []
+            seq_graphics   = False
             last_font_size = 0
 
             for operands, operator in content.operations:
@@ -69,31 +70,28 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                             if not isinstance(operands[0][i], TextStringObject):
                                 operands[0][i] = TextStringObject()
 
-
-
-                # lower q and upper Q are
+                # lower q and upper Q signaling graphic sequence start & stop
                 if operator == b_('q'):
                     seq_graphics = True
                 if operator == b_('Q'):
                     seq_graphics = False
 
+
                 # changing all (text) coloring to black (removing all text highlighting that's using a text color)
                 # removing (text) color completely results in wierd coloring (blue text turns yellow, probably because of another color layers)
                 if seq_graphics:
 
-                    # on RGB
+                    # Blacken RGB colors
                     if operator in [b_('rg'), b_('RG')]:
                         operands = [NumberObject(0), NumberObject(0), NumberObject(0)]
 
-                    # on CMYK
+                    # Blacken CMYK colors
                     if operator in [b_('k'), b_('K')]:
                         operands = [NumberObject(0), NumberObject(0), NumberObject(0), NumberObject(1)]
 
-                    # on Gray Scale
+                    # Blacken Gray Scale colors
                     if operator in [b_('g'), b_('G')]:
                         operands = [NumberObject(0)]
-
-
 
 
                 # remove styled rectangles (highlights, lines, etc.)
@@ -101,7 +99,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                 # presumably, that's the way word embedding all of it's graphics into a PDF when creating one
                 if operator == b_('re'):
 
-                    rectangle_width = operands[-2].as_numeric()
+                    rectangle_width  = operands[-2].as_numeric()
                     rectangle_height = operands[-1].as_numeric()
 
                     minWidth  = self.getMinimumRectangleWidth(last_font_size, 1) # (length of X letters at the current size)
@@ -119,23 +117,23 @@ class PdfEnhancedFileWriter(PdfFileWriter):
             content.operations = _operations
             pageRef.__setitem__(NameObject('/Contents'), content)
 
-root=Tk()
+root = Tk()
 root.title('Answers Hider')
 #root.iconbitmap( resource_path('./icon.ico'))
 pdf_list = []
 
 
-filename1=StringVar()
-src_pdf=StringVar()
+filename1 = StringVar()
+src_pdf   = StringVar()
 
 def load_pdf(filename):
     f = open(filename,'rb')
-    return pypdf.PdfFileReader(f)
+    return PdfFileReader(f)
 
 def load1():
     f = askopenfilename(filetypes=(('PDF File', '*.pdf'), ('All Files','*.*')))
     filename1.set(f.split('/')[-1])
-    src_pdf=f
+    src_pdf = f
     print(f)
     print(src_pdf)
     pdf1 = load_pdf(f)
@@ -148,10 +146,9 @@ def add_to_writer(pdfsrc, writer):
 
 def remove_images():
     print("remove rectangles")
-    writer = PdfEnhancedFileWriter()
-
-    output_filename= asksaveasfilename(filetypes=(('PDF File', '*.pdf'), ('All Files','*.*')))
-    outputfile= open(output_filename+".pdf",'wb')
+    writer          = PdfEnhancedFileWriter()
+    output_filename = asksaveasfilename(filetypes = (('PDF File', '*.pdf'), ('All Files','*.*')))
+    outputfile      = open(output_filename + ".pdf",'wb')
 
     add_to_writer(pdf_list[0], writer)
 
@@ -162,12 +159,12 @@ def remove_images():
     root.quit()
 
 ##Label(root, text="Rectangles remover").grid(row=0, column=2, sticky=E)
-button1=Button(root, text="Choose file", command=load1, height = 5, width = 14).grid(row=1, column=0)
-Label(root, textvariable=filename1,width=20).grid(row=1, column=1, sticky=(N,S,E,W))
+Button(root, text="Choose file", command=load1, height=5, width=14).grid(row=1, column=0)
+Label(root, textvariable=filename1, width=20).grid(row=1, column=1, sticky=(N,S,E,W))
 #photo= PhotoImage(file=resource_path('./button_pic.png'))
 
 #Button(root, text="Remove answers",image=photo, command=remove_images, width=100, height=120).grid(row=1, column=2,sticky=E)
-button2=Button(root, text="Remove answers", command=remove_images,font='Helvetica 12 bold', fg="red", height =4).grid(row=1, column=2,sticky=E)
+Button(root, text="Remove answers", command=remove_images, font='Helvetica 12 bold', fg="red", height=4).grid(row=1, column=2, sticky=E)
 
 #Label(root, text="Remove Answers^^").grid(row=2, column=2, sticky=E)
 #Label(root, text="Good Luck!").grid(row=2, column=0, sticky=W)
@@ -185,7 +182,7 @@ Label(root, text='''שימו לב,\n
 
 
 for child in root.winfo_children():
-    child.grid_configure(padx=10,pady=10)
+    child.grid_configure(padx=10, pady=10)
 
 root.mainloop()
 
