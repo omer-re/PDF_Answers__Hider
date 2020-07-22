@@ -51,6 +51,10 @@ class PdfEnhancedFileWriter(PdfFileWriter):
             b_('G'):  'grayscale', # color
 
             b_('re'): 'rectangle',
+
+            b_('l'): 'line', # line
+            b_('m'): 'line', # start line
+            b_('S'): 'line', # stroke(paint) line
         }
 
         if operator in operator_types:
@@ -66,7 +70,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
 
             operator_type = self._getOperatorType(operator)
 
-            if operator_type == 'text' or operator_type == 'rectangle':
+            if operator_type == 'text' or operator_type == 'rectangle' or operator_type == 'line':
                 return operator_type
 
         return False
@@ -93,7 +97,6 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                 content = ContentStream(content, pageRef)
 
             _operations    = []
-            seq_graphics   = False
             last_font_size = 0
 
             for operator_index, (operands, operator) in enumerate(content.operations):
@@ -121,13 +124,6 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                         if ignoreByteStringObject:
                             if not isinstance(operands[0][i], TextStringObject):
                                 operands[0][i] = TextStringObject()
-
-                # lower q and upper Q signaling graphic sequence start & stop
-                # although the right way is to check coloring between q&Q operators, tested documents showed that many coloring operations happens outside that sequence
-                if operator == b_('q'):
-                    seq_graphics = True
-                if operator == b_('Q'):
-                    seq_graphics = False
 
 
                 operator_type = self._getOperatorType(operator)
