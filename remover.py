@@ -21,6 +21,57 @@ def resource_path(relative_path):
 
 class PdfEnhancedFileWriter(PdfFileWriter):
 
+    colors_operands = {
+        'rgb': {
+            'black': [NumberObject(0), NumberObject(0), NumberObject(0)],
+            'white': [NumberObject(1), NumberObject(1), NumberObject(1)],
+        },
+        'cmyk': {
+            'black': [NumberObject(0), NumberObject(0), NumberObject(0), NumberObject(1)],
+            'white': [NumberObject(0), NumberObject(0), NumberObject(0), NumberObject(0)],
+        },
+        'grayscale': {
+            'black': [NumberObject(0)],
+            'white': [NumberObject(1)],
+        }
+    }
+
+    def _getOperatorType(self, operator):
+        operator_types = {
+            b_('Tj'): 'text',
+            b_("'"):  'text',
+            b_('"'):  'text',
+            b_("TJ"): 'text',
+
+            b_('rg'): 'rgb', # color
+            b_('RG'): 'rgb', # color
+            b_('k'):  'cmyk', # color
+            b_('K'):  'cmyk', # color
+            b_('g'):  'grayscale', # color
+            b_('G'):  'grayscale', # color
+
+            b_('re'): 'rectangle',
+        }
+
+        if operator in operator_types:
+            return operator_types[operator]
+
+        return None
+
+    # get the operation type that the color affects on
+    def _getColorTargetOperationType(self, color_index, operations):
+
+        for i in range(color_index + 1, len(operations)):
+            operator = operations[i][1]
+
+            operator_type = self._getOperatorType(operator)
+
+            if operator_type == 'text' or operator_type == 'rectangle':
+                return operator_type
+
+        return False
+
+
     def getMinimumRectangleWidth(self, fontSize, minimumNumberOfLetters = 1.5):
         return fontSize * minimumNumberOfLetters
 
@@ -31,6 +82,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
         :param bool ignoreByteStringObject: optional parameter
             to ignore ByteString Objects.
         """
+
         pages = self.getObject(self._pages)['/Kids']
         for j in range(len(pages)):
             page    = pages[j]
@@ -44,7 +96,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
             seq_graphics   = False
             last_font_size = 0
 
-            for operands, operator in content.operations:
+            for operator_index, (operands, operator) in enumerate(content.operations):
 
                 if operator == b_('Tf') and operands[0][:2] == '/F':
                     last_font_size = operands[1].as_numeric()
@@ -71,27 +123,32 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                                 operands[0][i] = TextStringObject()
 
                 # lower q and upper Q signaling graphic sequence start & stop
+                # although the right way is to check coloring between q&Q operators, tested documents showed that many coloring operations happens outside that sequence
                 if operator == b_('q'):
                     seq_graphics = True
                 if operator == b_('Q'):
                     seq_graphics = False
 
 
-                # changing all (text) coloring to black (removing all text highlighting that's using a text color)
-                # removing (text) color completely results in wierd coloring (blue text turns yellow, probably because of another color layers)
-                if seq_graphics:
+                operator_type = self._getOperatorType(operator)
 
-                    # Blacken RGB colors
-                    if operator in [b_('rg'), b_('RG')]:
-                        operands = [NumberObject(0), NumberObject(0), NumberObject(0)]
+                # we are ignoring all grayscale colors
+                # tests showed that black underlines, borders and tables are defined by grayscale and arn't using rgb/cmyk colors
+                if operator_type == 'rgb' or operator_type == 'cmyk':
 
-                    # Blacken CMYK colors
-                    if operator in [b_('k'), b_('K')]:
-                        operands = [NumberObject(0), NumberObject(0), NumberObject(0), NumberObject(1)]
+                    color_target_operation_type = self._getColorTargetOperationType(operator_index, content.operations)
 
-                    # Blacken Gray Scale colors
-                    if operator in [b_('g'), b_('G')]:
-                        operands = [NumberObject(0)]
+                    new_color = None
+
+                    # we are coloring all text in black and all rectangles in white
+                    # removing all colors paints rectangles in black which gives us unwanted results
+                    if color_target_operation_type == 'text':
+                        new_color = 'black'
+                    elif color_target_operation_type == 'rectangle':
+                        new_color = 'white'
+
+                    if new_color:
+                        operands = self.colors_operands[operator_type][new_color]
 
 
                 # remove styled rectangles (highlights, lines, etc.)
