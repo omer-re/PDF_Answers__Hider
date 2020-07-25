@@ -6,12 +6,11 @@ from PyPDF2.generic import NumberObject, TextStringObject, NameObject
 from PyPDF2.utils import b_
 
 from tkinter import Tk, Label, Button, StringVar
-from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename, askdirectory
 from tkinter.constants import N,S,W,E, LEFT, TOP, RIGHT, BOTTOM
 import sys, os
 import tkinter.font as font
-
-
+from reportlab.pdfgen import canvas
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -129,7 +128,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                 operator_type = self._getOperatorType(operator)
 
                 # we are ignoring all grayscale colors
-                # tests showed that black underlines, borders and tables are defined by grayscale and arn't using rgb/cmyk colors
+                # tests showed that black underlines,borders and tables are defined by grayscale and aren't using rgb/cmyk colors
                 if operator_type == 'rgb' or operator_type == 'cmyk':
 
                     color_target_operation_type = self._getColorTargetOperationType(operator_index, content.operations)
@@ -174,42 +173,68 @@ root = Tk()
 root.title('Answers Hider')
 #root.iconbitmap( resource_path('./icon.ico'))
 pdf_list = []
-
+filePaths = []
 
 filename1 = StringVar()
 src_pdf   = StringVar()
+
+
+def createMultiPage(file_path):
+    c = canvas.Canvas(file_path)
+
+    for i in range(c.getPageNumber()):
+        page_num = c.getPageNumber()
+        text = "This is page %s"
+        c.drawString(50, 50, text)
+        # c.showPage()
+    c.save()
+
 
 def load_pdf(filename):
     f = open(filename,'rb')
     return PdfFileReader(f)
 
 def load1():
-    f = askopenfilename(filetypes=(('PDF File', '*.pdf'), ('All Files','*.*')))
-    filename1.set(f.split('/')[-1])
-    src_pdf = f
-    print(f)
-    print(src_pdf)
-    pdf1 = load_pdf(f)
-    pdf_list.append(pdf1)
-    pdf_list.append(f)
+    f = askopenfilename(multiple=True, filetypes=(('PDF File', '*.pdf'), ('All Files', '*.*')))
+    var = root.tk.splitlist(f)
+    for file in var:
+        print(filePaths.append(file))
+        message_var = str(len(pdf_list) + 1) + " file(s) loaded"
+        filename1.set(message_var)
+        # filename1.set(file.split('/')[-1])
+        src_pdf = file
+        print(file)
+        print(src_pdf)
+        pdf1 = load_pdf(file)
+        pdf_list.append(pdf1)
+        # pdf_list.append(file)
+        print("Loaded " + file)
+
+    print(pdf_list)
 
 def add_to_writer(pdfsrc, writer):
     [writer.addPage(pdfsrc.getPage(i)) for i in range(pdfsrc.getNumPages())]
     writer.removeWordStyle()
 
 def remove_images():
-    print("remove rectangles")
     writer          = PdfEnhancedFileWriter()
-    output_filename = asksaveasfilename(filetypes = (('PDF File', '*.pdf'), ('All Files','*.*')))
-    outputfile      = open(output_filename + ".pdf",'wb')
+    # output_filename = asksaveasfilename(filetypes = (('PDF File', '*.pdf'), ('All Files','*.*')))
+    output_saving_dir = askdirectory(title="Choose output folder...")
+    i = 0
+    for file in pdf_list:
+        head, tail = os.path.split(filePaths[i])
+        print(tail)
+        file_path = os.path.join(output_saving_dir, "SCRAPPED_" + tail)
+        outputfile = open(file_path, 'wb')
+        add_to_writer(file, writer)
+        writer.write(outputfile)
+        outputfile.close()
+        i = i + 1
+        print(str(i) + " file(s) done")
 
-    add_to_writer(pdf_list[0], writer)
-
-    #pdf_src = PdfFileReader(inputStream)
-
-    writer.write(outputfile)
-    outputfile.close()
+    print("Job is done")
     root.quit()
+
 
 ##Label(root, text="Rectangles remover").grid(row=0, column=2, sticky=E)
 Button(root, text="Choose file", command=load1, height=5, width=14).grid(row=1, column=0)
