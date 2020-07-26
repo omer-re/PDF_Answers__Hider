@@ -170,7 +170,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
             pageRef.__setitem__(NameObject('/Contents'), content)
 
 root = Tk()
-root.title('Answers Hider')
+root.title('Answers Remover 2.0')
 #root.iconbitmap( resource_path('./icon.ico'))
 pdf_list = []
 filePaths = []
@@ -198,19 +198,20 @@ def load1():
     f = askopenfilename(multiple=True, filetypes=(('PDF File', '*.pdf'), ('All Files', '*.*')))
     var = root.tk.splitlist(f)
     for file in var:
-        print(filePaths.append(file))
+        filePaths.append(file)
         message_var = str(len(pdf_list) + 1) + " file(s) loaded"
         filename1.set(message_var)
         # filename1.set(file.split('/')[-1])
         src_pdf = file
-        print(file)
-        print(src_pdf)
+        # print(file)
+        # print(src_pdf)
         pdf1 = load_pdf(file)
         pdf_list.append(pdf1)
         # pdf_list.append(file)
         print("Loaded " + file)
 
-    print(pdf_list)
+    # prints the loaded list
+    #print(pdf_list)
 
 def add_to_writer(pdfsrc, writer):
     [writer.addPage(pdfsrc.getPage(i)) for i in range(pdfsrc.getNumPages())]
@@ -224,7 +225,7 @@ def remove_images():
     for file in pdf_list:
         head, tail = os.path.split(filePaths[i])
         print(tail)
-        file_path = os.path.join(output_saving_dir, "SCRAPPED_" + tail)
+        file_path = os.path.join(output_saving_dir, "SCRAPED_" + tail)
         outputfile = open(file_path, 'wb')
         add_to_writer(file, writer)
         writer.write(outputfile)
@@ -237,7 +238,9 @@ def remove_images():
 
 
 ##Label(root, text="Rectangles remover").grid(row=0, column=2, sticky=E)
-Button(root, text="Choose file", command=load1, height=5, width=14).grid(row=1, column=0)
+Button(root, text="Choose one or more PDFs", command=load1, height=5, width=20).grid(row=1, column=0)
+Button(root, text="Choose one or more PDFs", command=load1, font='Helvetica 12 bold', fg="green", height=4,
+       width=20).grid(row=1, column=0)
 Label(root, textvariable=filename1, width=20).grid(row=1, column=1, sticky=(N,S,E,W))
 #photo= PhotoImage(file=resource_path('./button_pic.png'))
 
