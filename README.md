@@ -6,6 +6,12 @@ Take a look
 ![Usage example](https://github.com/omer-re/PDF_Answers__Hider/blob/master/what%20I%20do.jpg)
 
 
+## PDF_Answers_Hider 2.0 - main updates:
+- New and improved scraping logic that keeps tables, equations and sketches [thanks Boaz Shebo Berger for his great contribution]
+- Batch action- choose multiple PDF files at once.
+- Minor changes in GUI and buttons' descriptions.
+
+
 ## Instructions
 1. download the .py file and run it on your python interperter OR just download the EXE file which made of the same script.
 if your windows warn you about it, click "more info" and then allow it to run.
