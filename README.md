@@ -7,7 +7,7 @@ Take a look
 
 
 ## PDF_Answers_Hider 2.0 - main updates:
-- New and improved scraping logic that keeps tables, equations and sketches [thanks Boaz Shebo Berger for his great contribution]
+- New and improved scraping logic that keeps tables, equations and sketches [thank you, Boaz Shebo Berger for your great contribution]
 - Batch action- choose multiple PDF files at once.
 - Minor changes in GUI and buttons' descriptions.
 
