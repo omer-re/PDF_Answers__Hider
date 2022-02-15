@@ -17,6 +17,12 @@ Take a look
 if your windows warn you about it, click "more info" and then allow it to run.
 2. choose a pdf file with answers marked on it, then choose where to locate the "clean" pdf and let it run.
 
+## MacOs / Linux users:
+1. The exe file won't work for you.
+2. Make sure you have all the dependancies installed: `pip3 install PyPDF2 reportlab tkinter`
+3. Download the whole project, then run the the .py file wtih `python3 remover.py `.
+4. That should work.
+
 ## NOTES
 1. Adobe Reader doesn't like some files, I am not sure why. If it happens to you - try to open the clean file using Chrome, FireFox, Foxit etc.
 2. It isn't an AI, ML, CV fancy script, it basically removes a layer of the pdf of shapes, leaving the text as it is.
