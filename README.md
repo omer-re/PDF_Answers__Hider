@@ -19,7 +19,7 @@ if your windows warn you about it, click "more info" and then allow it to run.
 
 ## MacOs / Linux users:
 1. The exe file won't work for you.
-2. Make sure you have all the dependancies installed: `pip3 install PyPDF2 reportlab tkinter`
+2. Make sure you have all the dependancies installed: `pip3 install -r requirements.txt`
 3. Download the whole project, then run the the .py file wtih `python3 remover.py `.
 4. That should work.
 
