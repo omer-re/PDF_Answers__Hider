@@ -24,6 +24,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
         'rgb': {
             'black': [NumberObject(0), NumberObject(0), NumberObject(0)],
             'white': [NumberObject(1), NumberObject(1), NumberObject(1)],
+            'red':  [NumberObject(1), NumberObject(0), NumberObject(0)],
         },
         'cmyk': {
             'black': [NumberObject(0), NumberObject(0), NumberObject(0), NumberObject(1)],
@@ -78,7 +79,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
     def getMinimumRectangleWidth(self, fontSize, minimumNumberOfLetters = 1.5):
         return fontSize * minimumNumberOfLetters
 
-    def removeWordStyle(self, ignoreByteStringObject=False):
+    def removeWordStyle(self, is_default, ignoreByteStringObject=False):
         """
         Removes imported styles from Word - Path Constructors rectangles - from this output.
 
@@ -138,8 +139,14 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                     # we are coloring all text in black and all rectangles in white
                     # removing all colors paints rectangles in black which gives us unwanted results
                     if color_target_operation_type == 'text':
-                        new_color = 'black'
-                    elif color_target_operation_type == 'rectangle':
+                        if is_default:
+                            new_color = 'black'
+                        else:
+                            if operator_type == 'rgb' and operands == self.colors_operands[operator_type]['red']:
+                                new_color = 'white'
+                            else:
+                                new_color = 'black'
+                    elif is_default and color_target_operation_type == 'rectangle':
                         new_color = 'white'
 
                     if new_color:
@@ -149,7 +156,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                 # remove styled rectangles (highlights, lines, etc.)
                 # the 're' operator is a Path Construction operator, creates a rectangle()
                 # presumably, that's the way word embedding all of it's graphics into a PDF when creating one
-                if operator == b_('re'):
+                if is_default and operator == b_('re'):
 
                     rectangle_width  = operands[-2].as_numeric()
                     rectangle_height = operands[-1].as_numeric()
@@ -213,9 +220,10 @@ def load1():
     # prints the loaded list
     #print(pdf_list)
 
-def add_to_writer(pdfsrc, writer):
+def add_to_writer(pdfsrc, writer, is_default = True):
     [writer.addPage(pdfsrc.getPage(i)) for i in range(pdfsrc.getNumPages())]
-    writer.removeWordStyle()
+    writer.removeWordStyle(is_default)
+        
 
 def remove_images():
     writer          = PdfEnhancedFileWriter()
@@ -235,7 +243,24 @@ def remove_images():
 
     print("Job is done")
     root.quit()
+def remove_images2():
+    writer          = PdfEnhancedFileWriter()
+    # output_filename = asksaveasfilename(filetypes = (('PDF File', '*.pdf'), ('All Files','*.*')))
+    output_saving_dir = askdirectory(title="Choose output folder...")
+    i = 0
+    for file in pdf_list:
+        head, tail = os.path.split(filePaths[i])
+        print(tail)
+        file_path = os.path.join(output_saving_dir, "SCRAPED_" + tail)
+        outputfile = open(file_path, 'wb')
+        add_to_writer(file, writer,False)
+        writer.write(outputfile)
+        outputfile.close()
+        i = i + 1
+        print(str(i) + " file(s) done")
 
+    print("Job is done")
+    root.quit()
 
 ##Label(root, text="Rectangles remover").grid(row=0, column=2, sticky=E)
 Button(root, text="Choose one or more PDFs", command=load1, height=5, width=20).grid(row=1, column=0)
@@ -245,7 +270,8 @@ Label(root, textvariable=filename1, width=20).grid(row=1, column=1, sticky=(N,S,
 #photo= PhotoImage(file=resource_path('./button_pic.png'))
 
 #Button(root, text="Remove answers",image=photo, command=remove_images, width=100, height=120).grid(row=1, column=2,sticky=E)
-Button(root, text="Remove answers", command=remove_images, font='Helvetica 12 bold', fg="red", height=4).grid(row=1, column=2, sticky=E)
+Button(root, text="Remove marking answers", command=remove_images, font='Helvetica 12 bold', fg="red", height=4).grid(row=1, column=2, sticky=E)
+Button(root, text="Remove red answers without deleteing code", command=remove_images2, font='Helvetica 12 bold', fg="red", height=4).grid(row=2, column=2, sticky=E)
 
 #Label(root, text="Remove Answers^^").grid(row=2, column=2, sticky=E)
 #Label(root, text="Good Luck!").grid(row=2, column=0, sticky=W)
