@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from PyPDF2.pdf import ContentStream
+# PyPDF2 -  a Python library that allows reading, writing, and manipulating PDF files
+from PyPDF2 import PdfReader, PdfWriter
 from PyPDF2.generic import NumberObject, TextStringObject, NameObject
-from PyPDF2.utils import b_
 
+from PyPDF2.generic import ContentStream
+
+# tkinter - used for building the GUI (Graphical User Interface) application
 from tkinter import Tk, Label, Button, StringVar
 from tkinter.filedialog import askopenfilename, asksaveasfilename, askdirectory
 from tkinter.constants import N,S,W,E, LEFT, TOP, RIGHT, BOTTOM
 import sys, os
 import tkinter.font as font
+
+# reportlab - a library for generating PDFs programmatically
 from reportlab.pdfgen import canvas
 
 def resource_path(relative_path):
@@ -18,7 +22,7 @@ def resource_path(relative_path):
     return os.path.join(os.path.abspath("."), relative_path)
 
 
-class PdfEnhancedFileWriter(PdfFileWriter):
+class PdfEnhancedFileWriter(PdfWriter):
 
     colors_operands = {
         'rgb': {
@@ -37,23 +41,20 @@ class PdfEnhancedFileWriter(PdfFileWriter):
 
     def _getOperatorType(self, operator):
         operator_types = {
-            b_('Tj'): 'text',
-            b_("'"):  'text',
-            b_('"'):  'text',
-            b_("TJ"): 'text',
-
-            b_('rg'): 'rgb', # color
-            b_('RG'): 'rgb', # color
-            b_('k'):  'cmyk', # color
-            b_('K'):  'cmyk', # color
-            b_('g'):  'grayscale', # color
-            b_('G'):  'grayscale', # color
-
-            b_('re'): 'rectangle',
-
-            b_('l'): 'line', # line
-            b_('m'): 'line', # start line
-            b_('S'): 'line', # stroke(paint) line
+            (b"Tj"): "text",
+            (b"'"): "text",
+            (b'"'): "text",
+            (b"TJ"): "text",
+            (b"rg"): "rgb",  # color
+            (b"RG"): "rgb",  # color
+            (b"k"): "cmyk",  # color
+            (b"K"): "cmyk",  # color
+            (b"g"): "grayscale",  # color
+            (b"G"): "grayscale",  # color
+            (b"re"): "rectangle",
+            (b"l"): "line",  # line
+            (b"m"): "line",  # start line
+            (b"S"): "line",  # stroke(paint) line
         }
 
         if operator in operator_types:
@@ -86,11 +87,10 @@ class PdfEnhancedFileWriter(PdfFileWriter):
             to ignore ByteString Objects.
         """
 
-        pages = self.getObject(self._pages)['/Kids']
-        for j in range(len(pages)):
-            page    = pages[j]
-            pageRef = self.getObject(page)
-            content = pageRef['/Contents'].getObject()
+        pages = self.get_object(self._pages)['/Kids']
+        for page in pages:
+            pageRef = self.get_object(page)
+            content = pageRef["/Contents"].get_object()
 
             if not isinstance(content, ContentStream):
                 content = ContentStream(content, pageRef)
@@ -100,25 +100,25 @@ class PdfEnhancedFileWriter(PdfFileWriter):
 
             for operator_index, (operands, operator) in enumerate(content.operations):
 
-                if operator == b_('Tf') and operands[0][:2] == '/F':
+                if operator == (b'Tf') and operands[0][:2] == '/F':
                     last_font_size = operands[1].as_numeric()
 
-                if operator == b_('Tj'):
+                if operator == (b'Tj'):
                     text = operands[0]
                     if ignoreByteStringObject:
                         if not isinstance(text, TextStringObject):
                             operands[0] = TextStringObject()
-                elif operator == b_("'"):
+                elif operator == (b"'"):
                     text = operands[0]
                     if ignoreByteStringObject:
                         if not isinstance(text, TextStringObject):
                             operands[0] = TextStringObject()
-                elif operator == b_('"'):
+                elif operator == (b'"'):
                     text = operands[2]
                     if ignoreByteStringObject:
                         if not isinstance(text, TextStringObject):
                             operands[2] = TextStringObject()
-                elif operator == b_("TJ"):
+                elif operator == (b"TJ"):
                     for i in range(len(operands[0])):
                         if ignoreByteStringObject:
                             if not isinstance(operands[0][i], TextStringObject):
@@ -149,7 +149,7 @@ class PdfEnhancedFileWriter(PdfFileWriter):
                 # remove styled rectangles (highlights, lines, etc.)
                 # the 're' operator is a Path Construction operator, creates a rectangle()
                 # presumably, that's the way word embedding all of it's graphics into a PDF when creating one
-                if operator == b_('re'):
+                if operator == (b're'):
 
                     rectangle_width  = operands[-2].as_numeric()
                     rectangle_height = operands[-1].as_numeric()
@@ -192,7 +192,7 @@ def createMultiPage(file_path):
 
 def load_pdf(filename):
     f = open(filename,'rb')
-    return PdfFileReader(f)
+    return PdfReader(f)
 
 def load1():
     f = askopenfilename(multiple=True, filetypes=(('PDF File', '*.pdf'), ('All Files', '*.*')))
@@ -214,7 +214,7 @@ def load1():
     #print(pdf_list)
 
 def add_to_writer(pdfsrc, writer):
-    [writer.addPage(pdfsrc.getPage(i)) for i in range(pdfsrc.getNumPages())]
+    [writer.add_page(pdfsrc.pages[i]) for i in range(len(pdfsrc.pages))]
     writer.removeWordStyle()
 
 def remove_images():
